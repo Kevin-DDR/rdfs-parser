@@ -1,66 +1,68 @@
 const readline = require('readline');
 fs = require('fs')
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+var xmldoc = require('xmldoc');
+ 
+var res = "";
+
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-class Requete{
-  constructor(requete) {
-    let words = requete.split(" ");
-        
-    this.sujet = words[0]
-    this.predicat = words[1]
-
-    let tmp = words;
-    tmp.shift();
-    tmp.shift();
-    this.objet = tmp.join(" ");
-
-    if(this.sujet.match("^\\?.*")){
-      this.wildSujet = true;
-      if(this.sujet.match("^\\?@.*")){
-        this.hasAnnoSujet = true;
-        let tmp = this.sujet.split("@")
-        this.annoSujet = tmp[1]
+function exploreChild(node){
+  //console.log(node.name)
+  var sujet = "";
+  if(node.name == "rdf:Description"){
+    console.log("Description !!!");
+    sujet = node.attr['rdf:about'];
+  }
+  //console.log(node.children);
+  if(node.children){
+    node.children.forEach(child => {
+      if(sujet == ""){
+        exploreChild(child);
+      }else{
+        exploreDescription(child, sujet);
       }
-    }
-
-    if(this.predicat.match("^\\?.*")){
-      this.wildPredicat = true;
-      if(this.predicat.match("^\\?@.*")){
-        this.hasAnnoPredicat = true;
-        let tmp = this.predicat.split("@")
-        this.annoPredicat = tmp[1]
-      }
-    }
-
-    if(this.objet.match("^\\?.*")){
-      this.wildObjet = true;
-      if(this.objet.match("^\\?@.*")){
-        this.hasAnnoObjet = true;
-        let tmp = this.objet.split("@")
-        this.annoObjet = tmp[1]
-      }
-    }
+    });
   }
 }
 
-function openFile(path){
+function exploreDescription(node, sujet){
+  //console.log(node.name)
+  if(node.val && node.val !== ""){
+    res+= sujet+" "+node.name.replace(/(\r\n|\n|\r)/gm,"").trim()+" "+node.val.replace(/(\r\n|\n|\r)/gm,"").trim();
+
+    if(node.attr["xml:lang"]){
+      res+="@"+node.attr["xml:lang"];
+    }
+
+    res += " .\n";
+    //console.log(res);
+  }
+}
+
+function openFile(path, callback){
   fs.readFile(path, 'utf8', function (err,data) {
     if (err) {
       return console.log(err);
     }
-    const dom = new JSDOM(data);
-    console.log(dom);
+    var document = new xmldoc.XmlDocument(data);
+    //console.log(document);
+    exploreChild(document);
+
+    if(typeof callback == "function") callback();
 
   });
+
+  
 }
 
 
 
-openFile(process.argv[2]);
+openFile(process.argv[2],function(){
+  console.log(res);
+});
+
 

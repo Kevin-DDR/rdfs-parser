@@ -1,0 +1,8 @@
+<rdf:Description rdf:about="ex:totor">
+  <schema:name>
+    Totor le Castor
+  </schema:name>
+  <schema:name xml:lang="en">
+    Totor the Castor
+  </schema:name>
+</rdf:Description>
