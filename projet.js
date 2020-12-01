@@ -20,13 +20,12 @@ function getContext(node, context){
       context[key] = value;
     }
   }
-  
+
   return context;
 }
 
-function exploreChild(node, context = []){
+function exploreChild(node, context = {}){
   //console.log(node.name)
-
   context = getContext(node,context);
   //console.log(node.children);
   if(node.children){
@@ -42,14 +41,14 @@ function exploreChild(node, context = []){
 
 function exploreDescription(node, context){
   //console.log(node.name)
+  console.log(context);
+  //console.log(JSON.stringify(monContext))
+  console.log("-----------------------------------\n");
+  context = JSON.parse(JSON.stringify(context))
   context = getContext(node,context);
-
+  console.log(context);
   if(context['rdf:resource']){
     res+= context['rdf:about']+" a "+cleanup(context['rdf:resource']);
-
-    if(context["xml:lang"]){
-      res+="@"+context["xml:lang"];
-    }
 
     res += " .\n";
   }else if(node.val && node.val !== ""){
@@ -61,6 +60,7 @@ function exploreDescription(node, context){
 
     res += " .\n";
   }
+  console.log("======================================================\n");
 }
 
 function openFile(path, callback){
