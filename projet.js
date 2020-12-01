@@ -10,36 +10,56 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-function exploreChild(node){
-  //console.log(node.name)
-  var sujet = "";
-  if(node.name == "rdf:Description"){
-    console.log("Description !!!");
-    sujet = node.attr['rdf:about'];
+function cleanup(string){
+  return string.replace(/(\r\n|\n|\r)/gm,"").trim();
+}
+
+function getContext(node, context){
+  if(node.attr){
+    for (const [key, value] of Object.entries(node.attr)) {
+      context[key] = value;
+    }
   }
+  
+  return context;
+}
+
+function exploreChild(node, context = []){
+  //console.log(node.name)
+
+  context = getContext(node,context);
   //console.log(node.children);
   if(node.children){
     node.children.forEach(child => {
-      if(sujet == ""){
+      if(node.name != "rdf:Description"){
         exploreChild(child);
       }else{
-        exploreDescription(child, sujet);
+        exploreDescription(child, context);
       }
     });
   }
 }
 
-function exploreDescription(node, sujet){
+function exploreDescription(node, context){
   //console.log(node.name)
-  if(node.val && node.val !== ""){
-    res+= sujet+" "+node.name.replace(/(\r\n|\n|\r)/gm,"").trim()+" "+node.val.replace(/(\r\n|\n|\r)/gm,"").trim();
+  context = getContext(node,context);
 
-    if(node.attr["xml:lang"]){
-      res+="@"+node.attr["xml:lang"];
+  if(context['rdf:resource']){
+    res+= context['rdf:about']+" a "+cleanup(context['rdf:resource']);
+
+    if(context["xml:lang"]){
+      res+="@"+context["xml:lang"];
     }
 
     res += " .\n";
-    //console.log(res);
+  }else if(node.val && node.val !== ""){
+    res+= context['rdf:about']+" "+cleanup(node.name)+' "'+cleanup(node.val)+'"';
+
+    if(context["xml:lang"]){
+      res+="@"+context["xml:lang"];
+    }
+
+    res += " .\n";
   }
 }
 
