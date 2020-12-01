@@ -27,11 +27,20 @@ function getContext(node, context){
 function exploreChild(node, context = {}){
   //console.log(node.name)
   context = getContext(node,context);
+  typeImpli = false;
   //console.log(node.children);
+  if(node.name && node.name != "rdf:Description"){
+    if(context['rdf:about']){
+      res+= context['rdf:about']+" a "+cleanup(node.name);
+      res += " .\n";
+      typeImpli = true;
+    }
+  }
+
   if(node.children){
     node.children.forEach(child => {
-      if(node.name != "rdf:Description"){
-        exploreChild(child);
+      if(node.name != "rdf:Description" && !typeImpli){
+        exploreChild(child,context);
       }else{
         exploreDescription(child, context);
       }
@@ -48,6 +57,8 @@ function exploreDescription(node, context){
   context = getContext(node,context);
   console.log(context);
   if(context['rdf:resource']){
+
+    if(cleanup(node.name) == "rdf:type"){}
     res+= context['rdf:about']+" a "+cleanup(context['rdf:resource']);
 
     res += " .\n";
