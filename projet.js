@@ -66,7 +66,6 @@ function exploreChild(node, oldcontext = {}){
           exploreDescription(child, newContext);
         }
       }
-      
     });
   }
 }
@@ -132,6 +131,19 @@ function exploreDescription(node, oldcontext){
       res+="@"+context["xml:lang"];
     }
     res += " .\n";
+  }
+
+  if(node.children){
+    node.children.forEach(child => {
+      let newContext = Object.assign({}, context);
+      if(child.name){
+        if(node.name != "rdf:Description" && !typeImpli){
+          exploreChild(child,newContext);
+        }else{
+          exploreDescription(child, newContext);
+        }
+      }
+    });
   }
 }
 
