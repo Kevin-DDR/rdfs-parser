@@ -42,8 +42,6 @@ function exploreChild(node, context = {}){
   //console.log(node.children);
   if(node.name && node.name != "rdf:Description"){
     if(context['rdf:about']){
-
-      
       resource = cleanup(node.name);
       var tmp = resource.split(":");
 
@@ -72,13 +70,19 @@ function exploreDescription(node, context){
   context = JSON.parse(JSON.stringify(context))
   context = getContext(node,context);
   if(context['rdf:resource']){
-
+    resource = cleanup(context['rdf:resource']);
     if(cleanup(node.name) == "rdf:type"){
       
-      resource = cleanup(context['rdf:resource']);
-
       res+= "<" + context['rdf:about']+"> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
+      res += " .\n";
+    }else{
+      subject = cleanup(node.name);
+      var tmp = subject.split(":");
+      if(links[tmp[0]]){
+        subject = links[tmp[0]]+tmp[1];
+      }
 
+      res+= "<" + context['rdf:about']+"> <"+subject+"> <"+resource+">";
       res += " .\n";
     }
   }else if(node.val && node.val !== ""){
@@ -88,7 +92,13 @@ function exploreDescription(node, context){
     if(links[tmp[0]]){
       resource = links[tmp[0]]+tmp[1];
     }
+
+
     res+= "<" + context['rdf:about']+"> "+ "<" + resource+'> "'+cleanup(node.val)+'"';
+
+    if(context["rdf:datatype"]){
+      res+= "^^<"+context["rdf:datatype"]+">";
+    }
 
     if(context["xml:lang"]){
       res+="@"+context["xml:lang"];
