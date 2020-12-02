@@ -1,14 +1,18 @@
 <?xml version="1.0"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:ex="http://example.org/">
-  <rdf:Description rdf:about="http://example.org/totor">
-    <rdf:type rdf:resource="http://example.org/Person"/>
-    <ex:bestFriend rdf:resource="http://example.org/Titi"/>
-    <ex:name>Totor le Castor</ex:name>
-    <ex:name xml:lang="en">Totor
-    the Castor</ex:name>
-  </rdf:Description>
-  <ex:Person rdf:about="http://example.org/titi">
-    <ex:name>Titi</ex:name>
-  </ex:Person>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ex="http://example.org/" xmlns:schema="https://schema.org/">
+    <rdf:Description rdf:about="http://example.org/totor">
+        <rdf:type rdf:resource="http://example.org/Person"/>
+        <ex:bestFriend rdf:resource="http://example.org/Titi"/>
+        <ex:name>Totor le Castor</ex:name>
+        <ex:name xml:lang="en">Totor the Castor</ex:name>
+        <ex:age rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">23</ex:age>
+        <schema:owns rdf:nodeID="book1"/>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="book1">
+        <rdf:type rdf:resource="schema:Book"/>
+    </rdf:Description>
+    <ex:Person rdf:about="http://example.org/titi">
+        <ex:name>Titi</ex:name>
+        <ex:age>19</ex:age>
+    </ex:Person>
 </rdf:RDF>

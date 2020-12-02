@@ -25,18 +25,19 @@ function getLinks(node){
   }
 }
 
-function getContext(node, context){
+function getContext(node, oldcontext){
+  let context = Object.assign({}, oldcontext);
   if(node.attr){
     for (const [key, value] of Object.entries(node.attr)) {
       context[key] = value;
     }
   }
 
-  return context;
+  return Object.assign({}, context);
 }
 
-function exploreChild(node, context = {}){
-  //console.log(node.name)
+function exploreChild(node, oldcontext = {}){
+  let context = Object.assign({}, oldcontext);
   context = getContext(node,context);
   typeImpli = false;
   //console.log(node.children);
@@ -57,23 +58,42 @@ function exploreChild(node, context = {}){
 
   if(node.children){
     node.children.forEach(child => {
-      if(node.name != "rdf:Description" && !typeImpli){
-        exploreChild(child,context);
-      }else{
-        exploreDescription(child, context);
+      let newContext = Object.assign({}, context);
+      if(child.name){
+        if(node.name != "rdf:Description" && !typeImpli){
+          exploreChild(child,newContext);
+        }else{
+          exploreDescription(child, newContext);
+        }
       }
+      
     });
   }
 }
 
-function exploreDescription(node, context){
-  context = JSON.parse(JSON.stringify(context))
-  context = getContext(node,context);
+function exploreDescription(node, oldcontext){
+  let context = getContext(node,oldcontext);
   if(context['rdf:resource']){
     resource = cleanup(context['rdf:resource']);
     if(cleanup(node.name) == "rdf:type"){
+      console.log(context);
+      console.log(node.name);
+      console.log("--------------------------------");
+      if(context['rdf:nodeID']){
+        subject = "_:"+context['rdf:nodeID'];
+      }else if(context['rdf:about']){
+        subject = "<" + context['rdf:about']+">";
+      }else{
+        subject = "";
+      }
+
+      var tmp = resource.split(":");
+      if(links[tmp[0]]){
+        resource = links[tmp[0]]+tmp[1];
+      }
+
       
-      res+= "<" + context['rdf:about']+"> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
+      res+= subject+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
       res += " .\n";
     }else{
       subject = cleanup(node.name);
@@ -85,6 +105,18 @@ function exploreDescription(node, context){
       res+= "<" + context['rdf:about']+"> <"+subject+"> <"+resource+">";
       res += " .\n";
     }
+  }else if (node.name && context['rdf:nodeID']){
+
+    subject = cleanup(node.name);
+    var tmp = subject.split(":");
+    if(links[tmp[0]]){
+      subject = links[tmp[0]]+tmp[1];
+    }
+    
+    resource = context['rdf:nodeID'];
+
+    res+= "<" + context['rdf:about']+"> <"+subject+"> _:"+resource+"";
+    res += " .\n";
   }else if(node.val && node.val !== ""){
 
     resource = cleanup(node.name);
@@ -92,18 +124,13 @@ function exploreDescription(node, context){
     if(links[tmp[0]]){
       resource = links[tmp[0]]+tmp[1];
     }
-
-
     res+= "<" + context['rdf:about']+"> "+ "<" + resource+'> "'+cleanup(node.val)+'"';
-
     if(context["rdf:datatype"]){
       res+= "^^<"+context["rdf:datatype"]+">";
     }
-
     if(context["xml:lang"]){
       res+="@"+context["xml:lang"];
     }
-
     res += " .\n";
   }
 }
