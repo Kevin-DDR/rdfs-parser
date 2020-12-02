@@ -109,12 +109,8 @@ function openFile(path, callback){
 
     if(typeof callback == "function") callback();
 
-  });
-
-  
+  }); 
 }
-
-
 
 openFile(process.argv[2],function(){
   console.log(res);

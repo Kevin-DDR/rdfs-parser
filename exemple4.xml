@@ -1,4 +1,0 @@
-<rdf:Description rdf:about="ex:totor">
-<rdf:type rdf:resource="schema:Person"/>
-<schema:name>Totor le Castor</schema:name>
-</rdf:Description>
