@@ -15,6 +15,16 @@ function cleanup(string){
   return string.replace(/(\r\n|\n|\r)/gm,"").trim();
 }
 
+function getLinks(node){
+  if(node.attr){
+    for (const [key, value] of Object.entries(node.attr)) {
+      var tmp = key.split(":");
+      tmp = tmp[tmp.length-1];
+      links[tmp] = value;
+    }
+  }
+}
+
 function getContext(node, context){
   if(node.attr){
     for (const [key, value] of Object.entries(node.attr)) {
@@ -36,18 +46,14 @@ function exploreChild(node, context = {}){
       
       resource = cleanup(node.name);
       var tmp = resource.split(":");
-      tmp = tmp.pop();
 
-      //tmp = tmp[tmp.length-1];
-
-      console.log(links);
-      console.log("----------------------------------");
-
-      if(links[tmp]){
-        resource = links[tmp];
+      if(links[tmp[0]]){
+        resource = links[tmp[0]]+"/"+tmp[1];
       }
 
-
+      if(links[tmp]){
+        resource = links[tmp[0]]+"/"+tmp[1];
+      }
 
       res+= "<" + context['rdf:about']+"> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
       res += " .\n";
@@ -73,15 +79,20 @@ function exploreDescription(node, context){
 
     if(cleanup(node.name) == "rdf:type"){
       
-      var tmp = cleanup(context['rdf:resource']).split("/");
-      tmp = tmp[tmp.length-1];
-      links[tmp] = cleanup(context['rdf:resource']);
-      res+= context['rdf:about']+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+cleanup(context['rdf:resource'])+">";
+      resource = cleanup(context['rdf:resource']);
+
+      res+= context['rdf:about']+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
 
       res += " .\n";
     }
   }else if(node.val && node.val !== ""){
-    res+= "<" + context['rdf:about']+"> "+ "<" + cleanup(node.name)+'> "'+cleanup(node.val)+'"';
+
+    resource = cleanup(node.name);
+    var tmp = resource.split(":");
+    if(links[tmp[0]]){
+      resource = links[tmp[0]]+"/"+tmp[1];
+    }
+    res+= "<" + context['rdf:about']+"> "+ "<" + resource+'> "'+cleanup(node.val)+'"';
 
     if(context["xml:lang"]){
       res+="@"+context["xml:lang"];
@@ -97,6 +108,7 @@ function openFile(path, callback){
       return console.log(err);
     }
     var document = new xmldoc.XmlDocument(data);
+    getLinks(document);
     exploreChild(document);
 
     if(typeof callback == "function") callback();
