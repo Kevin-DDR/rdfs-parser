@@ -3,6 +3,7 @@ fs = require('fs')
 var xmldoc = require('xmldoc');
  
 var res = "";
+var links = {};
 
 
 const rl = readline.createInterface({
@@ -31,7 +32,24 @@ function exploreChild(node, context = {}){
   //console.log(node.children);
   if(node.name && node.name != "rdf:Description"){
     if(context['rdf:about']){
-      res+= context['rdf:about']+" a "+cleanup(node.name);
+
+      
+      resource = cleanup(node.name);
+      var tmp = resource.split(":");
+      tmp = tmp.pop();
+
+      //tmp = tmp[tmp.length-1];
+
+      console.log(links);
+      console.log("----------------------------------");
+
+      if(links[tmp]){
+        resource = links[tmp];
+      }
+
+
+
+      res+= "<" + context['rdf:about']+"> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
       res += " .\n";
       typeImpli = true;
     }
@@ -49,21 +67,21 @@ function exploreChild(node, context = {}){
 }
 
 function exploreDescription(node, context){
-  //console.log(node.name)
-  console.log(context);
-  //console.log(JSON.stringify(monContext))
-  console.log("-----------------------------------\n");
   context = JSON.parse(JSON.stringify(context))
   context = getContext(node,context);
-  console.log(context);
   if(context['rdf:resource']){
 
-    if(cleanup(node.name) == "rdf:type"){}
-    res+= context['rdf:about']+" a "+cleanup(context['rdf:resource']);
+    if(cleanup(node.name) == "rdf:type"){
+      
+      var tmp = cleanup(context['rdf:resource']).split("/");
+      tmp = tmp[tmp.length-1];
+      links[tmp] = cleanup(context['rdf:resource']);
+      res+= context['rdf:about']+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+cleanup(context['rdf:resource'])+">";
 
-    res += " .\n";
+      res += " .\n";
+    }
   }else if(node.val && node.val !== ""){
-    res+= context['rdf:about']+" "+cleanup(node.name)+' "'+cleanup(node.val)+'"';
+    res+= "<" + context['rdf:about']+"> "+ "<" + cleanup(node.name)+'> "'+cleanup(node.val)+'"';
 
     if(context["xml:lang"]){
       res+="@"+context["xml:lang"];
@@ -71,7 +89,6 @@ function exploreDescription(node, context){
 
     res += " .\n";
   }
-  console.log("======================================================\n");
 }
 
 function openFile(path, callback){
@@ -80,7 +97,6 @@ function openFile(path, callback){
       return console.log(err);
     }
     var document = new xmldoc.XmlDocument(data);
-    //console.log(document);
     exploreChild(document);
 
     if(typeof callback == "function") callback();
