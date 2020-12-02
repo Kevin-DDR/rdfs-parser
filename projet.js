@@ -12,7 +12,7 @@ const rl = readline.createInterface({
 });
 
 function cleanup(string){
-  return string.replace(/(\r\n|\n|\r)/gm,"").trim();
+  return string.replace(/(\r\n|\n|\r)/gm,"").replace(/\t/g, ' ').replace(/\s+/g," ").trim();
 }
 
 function getLinks(node){
@@ -48,11 +48,7 @@ function exploreChild(node, context = {}){
       var tmp = resource.split(":");
 
       if(links[tmp[0]]){
-        resource = links[tmp[0]]+"/"+tmp[1];
-      }
-
-      if(links[tmp]){
-        resource = links[tmp[0]]+"/"+tmp[1];
+        resource = links[tmp[0]]+tmp[1];
       }
 
       res+= "<" + context['rdf:about']+"> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
@@ -81,7 +77,7 @@ function exploreDescription(node, context){
       
       resource = cleanup(context['rdf:resource']);
 
-      res+= context['rdf:about']+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
+      res+= "<" + context['rdf:about']+"> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <"+resource+">";
 
       res += " .\n";
     }
@@ -90,7 +86,7 @@ function exploreDescription(node, context){
     resource = cleanup(node.name);
     var tmp = resource.split(":");
     if(links[tmp[0]]){
-      resource = links[tmp[0]]+"/"+tmp[1];
+      resource = links[tmp[0]]+tmp[1];
     }
     res+= "<" + context['rdf:about']+"> "+ "<" + resource+'> "'+cleanup(node.val)+'"';
 
